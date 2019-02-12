@@ -72,6 +72,12 @@ public class TraceIdGenerator {
      */
     private static StringBuilder newLocalStringBuilder() {
         StringBuilder builder = SB.get();
+
+        if (builder.capacity() > 500) {
+            builder.setLength(32);
+            builder.trimToSize();
+        }
+
         builder.setLength(0);
         return builder;
     }
