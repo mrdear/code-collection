@@ -29,13 +29,13 @@ public enum DateFormat {
     }
 
 
-    public String format(String date) {
+    public String format(Date date) {
         FastDateFormat instance = FastDateFormat.getInstance(this.pattern);
         return instance.format(date);
     }
 
 
-    public String format(String date, String timeZone) {
+    public String format(Date date, String timeZone) {
         FastDateFormat instance = FastDateFormat.getInstance(this.pattern, TimeZone.getTimeZone(timeZone));
         return instance.format(date);
     }
