@@ -1,62 +1,86 @@
 package cn.mrdear.collection.util;
 
-import org.apache.commons.lang3.time.FastDateFormat;
-
-import java.text.ParseException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.TimeZone;
 
 /**
+ * 时间处理工具,如果是多时区系统,需要加上时区,非多时区系统可以直接去掉zone参数
+ *
  * @author Quding Ding
  * @since 2019-02-12
  */
 public enum DateFormat {
 
-    YMD("yyyyMMdd"),
+    YMD_LA(DateTimeConstant.YMD, ZoneId.of("America/Los_Angeles")),
 
-    YMD_("yyyy-MM-dd"),
-
-    YMDHMS("yyyyMMddHHmmss"),
-
-    YMDHMS_("yyyy-MM-dd HH:mm:ss"),
+    YMD_GMT8(DateTimeConstant.YMD, ZoneId.of("GMT+8")),
 
     ;
 
-    private String pattern;
+    /**
+     * 格式
+     */
+    public final DateTimeFormatter pattern;
 
-    DateFormat(String pattern) {
-        this.pattern = pattern;
+    DateFormat(DateTimeFormatter pattern, ZoneId zone) {
+        this.pattern = pattern.withZone(zone);
     }
 
-
+    /**
+     * 格式化时间
+     *
+     * @param date 时间
+     * @return 格式化结果
+     */
     public String format(Date date) {
-        FastDateFormat instance = FastDateFormat.getInstance(this.pattern);
-        return instance.format(date);
-    }
-
-
-    public String format(Date date, String timeZone) {
-        FastDateFormat instance = FastDateFormat.getInstance(this.pattern, TimeZone.getTimeZone(timeZone));
-        return instance.format(date);
+        return this.pattern.format(date.toInstant());
     }
 
 
     public Date parse(String date) {
-        FastDateFormat instance = FastDateFormat.getInstance(this.pattern);
-        try {
-            return instance.parse(date);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+        ZonedDateTime time = ZonedDateTime.parse(date, this.pattern);
+        return Date.from(time.toInstant());
     }
 
-    public Date parse(String date, String timezone) {
-        FastDateFormat instance = FastDateFormat.getInstance(this.pattern, TimeZone.getTimeZone(timezone));
-        try {
-            return instance.parse(date);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * 日期加减
+     *
+     * @param date 日期
+     * @param day  增加天数
+     * @return 结果
+     */
+    public Date addDay(Date date, int day) {
+        Instant instant = ZonedDateTime.ofInstant(date.toInstant(), this.pattern.getZone())
+            .plusDays(day)
+            .toInstant();
+        return new Date(instant.toEpochMilli());
+    }
+
+    /**
+     * 同上
+     *
+     * @param date 日期
+     * @param day  增加天数
+     * @return 结果
+     */
+    public Date addDay(String date, int day) {
+        Instant instant = ZonedDateTime.parse(date, this.pattern)
+            .plusDays(day)
+            .toInstant();
+        return new Date(instant.toEpochMilli());
+    }
+
+    /**
+     * 得到指定时区当前时间
+     * @return 指定时区当前时间
+     */
+    public String getNow() {
+        Instant instant = ZonedDateTime.now(this.pattern.getZone())
+            .toInstant();
+        return this.pattern.format(instant);
     }
 
 }
